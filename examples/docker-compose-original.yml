@@ -1,0 +1,44 @@
+version: '3.8'
+services:
+  web:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    environment:
+      - DB_PASSWORD=mysecretpassword123
+      - API_KEY=sk-1234567890abcdef
+      - SECRET_TOKEN=supersecrettoken456
+  
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: mysecretpassword123
+      POSTGRES_USER: admin
+      POSTGRES_DB: myapp
+      DB_CREDENTIALS: admin:password789
+    volumes:
+      - ./data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    environment:
+      REDIS_PASSWORD: redispass123
+      REDIS_MAXMEMORY: 256mb
+    ports:
+      - "6379:6379"
+  
+  app:
+    image: myapp:latest
+    environment:
+      DATABASE_URL: postgresql://admin:password789@db:5432/myapp
+      REDIS_URL: redis://:redispass123@redis:6379
+      AUTH_SECRET: myauthsecretkey
+      DEBUG_MODE: "true"
+      LOG_LEVEL: info
+    depends_on:
+      - db
+      - redis
+
+volumes:
+  data:
+    driver: local

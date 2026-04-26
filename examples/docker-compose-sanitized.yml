@@ -1,0 +1,42 @@
+---
+version: '3.8'
+services:
+  web:
+    image: nginx:latest
+    ports:
+    - "8080:80"
+    environment:
+    - DB_PASSWORD=${DB_PASSWORD}
+    - API_KEY=${API_KEY}
+    - SECRET_TOKEN=${SECRET_TOKEN}
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: admin
+      POSTGRES_DB: myapp
+      DB_CREDENTIALS: ${DB_CREDENTIALS}
+    volumes:
+    - ./data:/var/lib/postgresql/data
+  redis:
+    image: redis:alpine
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_MAXMEMORY: 256mb
+    ports:
+    - "6379:6379"
+  app:
+    image: myapp:latest
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      AUTH_SECRET: ${AUTH_SECRET}
+      DEBUG_MODE: "true"
+      LOG_LEVEL: info
+    depends_on:
+    - db
+    - redis
+
+volumes:
+  data:
+    driver: local
